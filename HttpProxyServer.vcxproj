@@ -103,11 +103,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\global.h" />
-    <ClInclude Include="header\MainWidget.h" />
+    <QtMoc Include="header\MainWidget.h" />
     <ClInclude Include="header\manager.h" />
     <ClInclude Include="header\proxyserver.h" />
     <ClInclude Include="header\task.h" />
     <ClInclude Include="header\threadpool.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
