@@ -29,44 +29,44 @@
     <QtUic Include="MainWidget.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtMoc Include="MainWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <ClCompile Include="MainWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ClientManager.cpp">
+    <ClCompile Include="src\proManager\ClientManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ProxyServer.cpp">
+    <ClCompile Include="src\proManager\ServerManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ServerManager.cpp">
+    <ClCompile Include="src\MainWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Task.cpp">
+    <ClCompile Include="src\ProxyServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Task.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="threadpool.hpp">
+    <ClInclude Include="header\global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="task.h">
+    <ClInclude Include="header\MainWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="proxyserver.h">
+    <ClInclude Include="header\manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="global.h">
+    <ClInclude Include="header\proxyserver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="manager.h">
+    <ClInclude Include="header\task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="header\threadpool.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

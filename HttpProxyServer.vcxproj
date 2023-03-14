@@ -60,7 +60,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(Qt_INCLUDEPATH_);C:\Program Files\MySQL\MySQL Server 8.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(Qt_INCLUDEPATH_);C:\Program Files\MySQL\MySQL Server 8.0\include;D:\Mine\Projects\VSProjects\HttpProxyServer\header</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files\MySQL\MySQL Server 8.0\lib</AdditionalLibraryDirectories>
@@ -92,22 +92,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ProxyServer.cpp" />
-    <ClCompile Include="ServerManager.cpp" />
-    <ClCompile Include="Task.cpp" />
+    <ClCompile Include="src\MainWidget.cpp" />
+    <ClCompile Include="src\proManager\ClientManager.cpp" />
+    <ClCompile Include="src\proManager\ServerManager.cpp" />
+    <ClCompile Include="src\ProxyServer.cpp" />
+    <ClCompile Include="src\Task.cpp" />
     <QtRcc Include="MainWidget.qrc" />
     <QtUic Include="MainWidget.ui" />
-    <QtMoc Include="MainWidget.h" />
-    <ClCompile Include="ClientManager.cpp" />
-    <ClCompile Include="MainWidget.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="global.h" />
-    <ClInclude Include="manager.h" />
-    <ClInclude Include="proxyserver.h" />
-    <ClInclude Include="task.h" />
-    <ClInclude Include="threadpool.hpp" />
+    <ClInclude Include="header\global.h" />
+    <ClInclude Include="header\MainWidget.h" />
+    <ClInclude Include="header\manager.h" />
+    <ClInclude Include="header\proxyserver.h" />
+    <ClInclude Include="header\task.h" />
+    <ClInclude Include="header\threadpool.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -1,4 +1,4 @@
-﻿#include "header/MainWidget.h"
+﻿#include "MainWidget.h"
 #include <iostream>
 #include "mysql.h"
 

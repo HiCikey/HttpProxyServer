@@ -195,7 +195,7 @@ char* Task::getIpv6(string domain, ADDRINFOA& hints, char* ipBuf)
 	PADDRINFOA res;
 	hints.ai_family = AF_INET6;
 	if (getaddrinfo(domain.c_str(), NULL, &hints, &res) != 0) {
-		delete ipBuf;
+		delete[] ipBuf;
 		return nullptr;
 	}
 
