@@ -3,20 +3,20 @@
 ProxyServer::ProxyServer()
 {
 	sockListen = INVALID_SOCKET;
-	sockListenIpv6 = INVALID_SOCKET;
 	sockAddrListen = { 0 };
-	sockAddrListenIpv6 = { 0 };
+	pool = nullptr;
 }
 
 ProxyServer::~ProxyServer()
 {
+	delete pool;
 }
 
 
 void ProxyServer::proxyStartUp()
 {
 	if (!initial()) return;
-	ThreadPool<Task>* pool = new ThreadPool<Task>(THREAD_COUNT);
+	pool = new ThreadPool<Task>(THREAD_COUNT);
 	while (true)
 	{
 		// 从监听队列中取出一个连接请求，若无则阻塞
@@ -30,9 +30,20 @@ void ProxyServer::proxyStartUp()
 		Task* task = new Task(sockConn, addr);
 		pool->addTask(task);
 	}
-	delete pool;
 	closesocket(sockListen);
 	WSACleanup();
+}
+
+
+/*
+* 返回当前任务队列，用于主窗口显示当前各客户端-服务器连接状态
+*/
+queue<Task*> ProxyServer::getTasks()
+{
+	if (pool == nullptr)
+		return queue<Task*>();
+	else
+		return pool->getTaskQueue();
 }
 
 

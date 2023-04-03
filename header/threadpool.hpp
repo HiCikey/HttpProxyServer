@@ -17,6 +17,7 @@ public:
 	ThreadPool(int count = 1);
 	~ThreadPool();
 	bool addTask(T* task);
+	queue<T*> getTaskQueue();
 
 private:
 	condition_variable condition;
@@ -57,6 +58,13 @@ bool ThreadPool<T>::addTask(T* task)
 	task_queue.push(task);
 	condition.notify_one();
 	return true;
+}
+
+template<typename T>
+inline queue<T*> ThreadPool<T>::getTaskQueue()
+{
+	unique_lock<mutex> lck(mtx);		//hack return任务队列时是否需要加锁
+	return task_queue;
 }
 
 template<typename T>

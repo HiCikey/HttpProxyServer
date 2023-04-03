@@ -5,17 +5,8 @@ Task::Task(SOCKET sockConn, SOCKADDR_IN addr) :isIpv4(true)
 	cliManager = new ClientManager(sockConn, addr);
 	serManager = new ServerManager();
 	buffer = new char[BUFFER_SIZE];
-	packLen = -1;
-	protocol = "";
-	httpVersion = "1.1";
-	cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
-}
-
-Task::Task(SOCKET sockConnIpv6, SOCKADDR_IN6 addrIpv6) :isIpv4(false)
-{
-	cliManager = new ClientManager(sockConnIpv6, addrIpv6);
-	serManager = new ServerManager();
-	buffer = new char[BUFFER_SIZE];
+	up_bytes = 0;
+	down_bytes = 0;
 	packLen = -1;
 	protocol = "";
 	httpVersion = "1.1";
@@ -30,15 +21,17 @@ Task::~Task()
 	cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
 }
 
+
 void Task::startup()
 {
+	/* 接收客户端的第一个报文，解析使用的传输协议，并与目标服务器建立tcp连接 */
 	cliManager->recvFromClient(buffer, packLen);
 	if (packLen <= 0) return;
 	getProtAndParseHead();
 	if ((isIpv4 && !serManager->connectServer()) || (!isIpv4 && !serManager->connectIpv6Server())) return;
 	printf("TCP tunnel has been established   %s:%d | [%s]%s:%u\n", cliManager->clientHost->addr, cliManager->clientHost->port, serManager->serverHost->addr, serManager->serverHost->domain.c_str(), serManager->serverHost->port);
 
-	/* 回复客户端已经建立和服务器之间的tcp连接，并接收客户端的真正http请求报文 */
+	/* 若为https协议，回复客户端已经建立和服务器之间的tcp连接，并接收客户端的真正https请求报文 */
 	if (protocol == "HTTPS") {
 		string res = "HTTP/" + httpVersion + " 200 Connection established\r\n\r\n";
 		cliManager->sendToClient(const_cast<char*>(res.c_str()), (int)res.size());
@@ -48,12 +41,22 @@ void Task::startup()
 		else
 			return;
 	}
+	transferLoop();
+}
 
+
+/*
+* 循环转发客户端和目的服务器之间的通信报文
+* 直到一方断开连接或转发失败
+*/
+void Task::transferLoop()
+{
 	/* 转发报文循环 */
 	while (true)
 	{
 		if (!serManager->sendToServer(buffer, packLen))
 			break;
+		up_bytes += packLen;
 
 		serManager->recvFromServer(buffer, packLen);
 		if (packLen > 0 && packLen < BUFFER_SIZE)
@@ -63,6 +66,7 @@ void Task::startup()
 
 		if (!cliManager->sendToClient(buffer, packLen))
 			break;
+		down_bytes += packLen;
 
 		cliManager->recvFromClient(buffer, packLen);
 		if (packLen > 0 && packLen < BUFFER_SIZE)
@@ -186,6 +190,7 @@ char* Task::getIpFromDomain(string domain)
 	inet_ntop(AF_INET, &addr->sin_addr, ipBuf, ADDRLEN_IPV4);
 	return ipBuf;
 }
+
 
 /*
 * 尝试解析出域名对应的ipv6地址，存入ipBuf中并返回

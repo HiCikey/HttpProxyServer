@@ -1,5 +1,5 @@
-﻿#include "manager.h"
-using namespace manager;
+﻿#include "managers.h"
+using namespace managers;
 
 ClientManager::ClientManager(SOCKET sockConn, SOCKADDR_IN addr)
 {
@@ -10,7 +10,7 @@ ClientManager::ClientManager(SOCKET sockConn, SOCKADDR_IN addr)
 	clientHost->port = ntohs(addr.sin_port);
 }
 
-manager::ClientManager::ClientManager(SOCKET sockConnIpv6, SOCKADDR_IN6 addrIpv6)
+managers::ClientManager::ClientManager(SOCKET sockConnIpv6, SOCKADDR_IN6 addrIpv6)
 {
 	sockClient = sockConnIpv6;
 	clientHost = new ClientInfo();

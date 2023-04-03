@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
-    <height>504</height>
+    <width>616</width>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,30 +19,28 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>643</width>
+     <width>616</width>
      <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>新建</string>
+     <string>域名规则</string>
     </property>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
-     <string>打开</string>
+     <string>IP规则</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>文件类型规则</string>
     </property>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
+   <addaction name="menu_3"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>

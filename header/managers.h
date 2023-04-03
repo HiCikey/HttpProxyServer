@@ -5,7 +5,7 @@
 #include<WS2tcpip.h>
 #pragma comment(lib,"ws2_32.lib")
 
-namespace manager {
+namespace managers {
 	/*
 	* 缓存标签，可通过该结构体唯一标识一个缓存文件
 	*/
@@ -15,7 +15,6 @@ namespace manager {
 		u_int visit_times;	/* 文件访问次数 */
 		u_int size;			/* 文件大小（字节） */
 	}*CacheLabelPtr;
-
 
 	/*
 	* 客户端通信管理类
@@ -51,4 +50,19 @@ namespace manager {
 	private:
 		SOCKET sockServer;				/* 服务器端通信socket */
 	};
+
+	/*
+	* http访问规则管理员类
+	*/
+	class RuleManager
+	{
+	public:
+		static RuleManager* getInstance() { return nullptr; }		//hack RuleManager修改，继续使用单例模式？
+	private:
+		RuleManager();
+		~RuleManager();
+		//static RuleManager* ruleManager;	/* 类单例，保证整个系统只有一个规则管理员 */
+	};
 }
+
+//RuleManager* RuleManager::ruleManager = new RuleManager();

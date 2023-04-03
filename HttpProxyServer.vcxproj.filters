@@ -49,12 +49,15 @@
     <ClCompile Include="src\Task.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="header\RuleManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="header\manager.h">
+    <ClInclude Include="header\managers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="header\proxyserver.h">

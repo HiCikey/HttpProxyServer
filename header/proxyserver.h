@@ -17,12 +17,13 @@ public:
 	~ProxyServer();
 
 	SOCKET sockListen;					/* ipv4监听socket */
-	SOCKET sockListenIpv6;				/* ipv6监听socket */
 	SOCKADDR_IN sockAddrListen;			/* 监听的ipv4通信地址 */
-	SOCKADDR_IN6 sockAddrListenIpv6;	/* 监听的ipv6通信地址 */
 
 	void proxyStartUp();
+	queue<Task*> getTasks();
 private:
+	ThreadPool<Task>* pool;				/* 线程池，用于加入通信任务、获取当前任务队列 */
+
 	bool initial();
 	bool creatSocket();
 };

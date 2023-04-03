@@ -92,6 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="header\RuleManager.cpp" />
     <ClCompile Include="src\MainWidget.cpp" />
     <ClCompile Include="src\proManager\ClientManager.cpp" />
     <ClCompile Include="src\proManager\ServerManager.cpp" />
@@ -104,7 +105,7 @@
   <ItemGroup>
     <ClInclude Include="header\global.h" />
     <QtMoc Include="header\MainWidget.h" />
-    <ClInclude Include="header\manager.h" />
+    <ClInclude Include="header\managers.h" />
     <ClInclude Include="header\proxyserver.h" />
     <ClInclude Include="header\task.h" />
     <ClInclude Include="header\threadpool.hpp" />

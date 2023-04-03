@@ -1,5 +1,5 @@
-﻿#include "manager.h"
-using namespace manager;
+﻿#include "managers.h"
+using namespace managers;
 
 ServerManager::ServerManager()
 {
@@ -35,7 +35,7 @@ bool ServerManager::connectServer()
 	/* 发起tcp连接请求 */
 	result = connect(sockServer, (SOCKADDR*)&sockAddrServer, sizeof(sockAddrServer));
 	if (result == SOCKET_ERROR) {
-		printf("\033[1;31m[ERROR] Failed to connect with server [%s]%s:%u\033[0m\n", serverHost->addr, serverHost->domain.c_str(), serverHost->port);
+		printf("\033[1;31m[ERROR] Failed to connect with server [%s]%s:%u, code = %d\033[0m\n", serverHost->addr, serverHost->domain.c_str(), serverHost->port, WSAGetLastError());
 		return false;
 	}
 	return true;
@@ -44,7 +44,7 @@ bool ServerManager::connectServer()
 /*
 * 请求与目的web服务器建立tcp连接，基于ipv6协议
 */
-bool manager::ServerManager::connectIpv6Server()
+bool managers::ServerManager::connectIpv6Server()
 {
 	sockServer = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	if (sockServer == INVALID_SOCKET) {
@@ -61,7 +61,7 @@ bool manager::ServerManager::connectIpv6Server()
 	/* 发起tcp连接请求 */
 	result = connect(sockServer, (SOCKADDR*)&sockAddrServer, sizeof(sockAddrServer));
 	if (result == SOCKET_ERROR) {
-		printf("\033[1;31m[ERROR] Failed to connect with server [%s]%s:%u\033[0m\n", serverHost->addr, serverHost->domain.c_str(), serverHost->port);
+		printf("\033[1;31m[ERROR] Failed to connect with server [%s]%s:%u, code = %d\033[0m\n", serverHost->addr, serverHost->domain.c_str(), serverHost->port, WSAGetLastError());
 		return false;
 	}
 	return true;
