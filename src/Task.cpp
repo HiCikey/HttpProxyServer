@@ -2,9 +2,11 @@
 
 Task::Task(SOCKET sockConn, SOCKADDR_IN addr) :isIpv4(true)
 {
-	cliManager = new ClientManager(sockConn, addr);
-	serManager = new ServerManager();
+	clientManager = new ClientManager(sockConn, addr);
+	serverManager = new ServerManager();
 	buffer = new char[BUFFER_SIZE];
+	clientSocket = sockConn;
+	serverSocket = INVALID_SOCKET;
 	up_bytes = 0;
 	down_bytes = 0;
 	packLen = -1;
@@ -16,8 +18,8 @@ Task::Task(SOCKET sockConn, SOCKADDR_IN addr) :isIpv4(true)
 Task::~Task()
 {
 	delete buffer;
-	delete cliManager;
-	delete serManager;
+	delete clientManager;
+	delete serverManager;
 	cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
 }
 
@@ -25,22 +27,20 @@ Task::~Task()
 void Task::startup()
 {
 	/* 接收客户端的第一个报文，解析使用的传输协议，并与目标服务器建立tcp连接 */
-	cliManager->recvFromClient(buffer, packLen);
+	if (!clientManager->recvFromClient(buffer, packLen)) return;
 	if (packLen <= 0) return;
 	getProtAndParseHead();
-	if ((isIpv4 && !serManager->connectServer()) || (!isIpv4 && !serManager->connectIpv6Server())) return;
-	printf("TCP tunnel has been established   %s:%d | [%s]%s:%u\n", cliManager->clientHost->addr, cliManager->clientHost->port, serManager->serverHost->addr, serManager->serverHost->domain.c_str(), serManager->serverHost->port);
+	if ((isIpv4 && !serverManager->connectServer(serverSocket)) || (!isIpv4 && !serverManager->connectIpv6Server(serverSocket)))
+		return;
+	printf("TCP tunnel has been established   %s:%d | [%s]%s:%u\n", clientManager->clientHost->addr, clientManager->clientHost->port, serverManager->serverHost->addr, serverManager->serverHost->domain.c_str(), serverManager->serverHost->port);
 
 	/* 若为https协议，回复客户端已经建立和服务器之间的tcp连接，并接收客户端的真正https请求报文 */
 	if (protocol == "HTTPS") {
 		string res = "HTTP/" + httpVersion + " 200 Connection established\r\n\r\n";
-		cliManager->sendToClient(const_cast<char*>(res.c_str()), (int)res.size());
-		cliManager->recvFromClient(buffer, packLen);
-		if (packLen > 0 && packLen < BUFFER_SIZE)
-			buffer[packLen] = 0;
-		else
-			return;
+		clientManager->sendToClient(const_cast<char*>(res.c_str()), (int)res.size());
+		if (!clientManager->recvFromClient(buffer, packLen)) return;
 	}
+	serverManager->sendToServer(buffer, packLen);
 	transferLoop();
 }
 
@@ -51,28 +51,25 @@ void Task::startup()
 */
 void Task::transferLoop()
 {
+	fd_set read_set = { 0 };
 	/* 转发报文循环 */
 	while (true)
 	{
-		if (!serManager->sendToServer(buffer, packLen))
-			break;
-		up_bytes += packLen;
+		FD_ZERO(&read_set);
+		FD_SET(clientSocket, &read_set);
+		FD_SET(serverSocket, &read_set);
+		select(FD_SETSIZE, &read_set, NULL, NULL, NULL);
 
-		serManager->recvFromServer(buffer, packLen);
-		if (packLen > 0 && packLen < BUFFER_SIZE)
-			buffer[packLen] = 0;
-		else
-			break;
-
-		if (!cliManager->sendToClient(buffer, packLen))
-			break;
-		down_bytes += packLen;
-
-		cliManager->recvFromClient(buffer, packLen);
-		if (packLen > 0 && packLen < BUFFER_SIZE)
-			buffer[packLen] = 0;
-		else
-			break;
+		if (FD_ISSET(serverSocket, &read_set)){
+			if (!serverManager->recvFromServer(buffer, packLen))
+				break;
+			clientManager->sendToClient(buffer, packLen);
+		}
+		if (FD_ISSET(clientSocket, &read_set)){
+			if (!clientManager->recvFromClient(buffer, packLen))
+				break;
+			serverManager->sendToServer(buffer, packLen);
+		}
 	}
 	cout << endl;
 }
@@ -118,9 +115,9 @@ void Task::parseHttpsHead(string line)
 	domain = host.substr(0, hostLen - 4);
 	httpVersion = line.substr(hostLen + 8 + 6);
 
-	serManager->serverHost->port = 443;		/* https协议服务器端口默认为443 */
-	serManager->serverHost->domain = domain;
-	serManager->serverHost->addr = getIpFromDomain(domain);
+	serverManager->serverHost->port = 443;		/* https协议服务器端口默认为443 */
+	serverManager->serverHost->domain = domain;
+	serverManager->serverHost->addr = getIpFromDomain(domain);
 }
 
 
@@ -156,9 +153,9 @@ void Task::parseHttpHead(string whole)
 		}
 	}
 	if (end) {
-		serManager->serverHost->domain = domain;		/* 保存解析出的目的主机信息 */
-		serManager->serverHost->port = port;
-		serManager->serverHost->addr = getIpFromDomain(domain);
+		serverManager->serverHost->domain = domain;		/* 保存解析出的目的主机信息 */
+		serverManager->serverHost->port = port;
+		serverManager->serverHost->addr = getIpFromDomain(domain);
 	}
 }
 

@@ -18,13 +18,14 @@ ServerManager::~ServerManager()
 /*
 * 请求与目的web服务器建立tcp连接，基于ipv4协议
 */
-bool ServerManager::connectServer()
+bool ServerManager::connectServer(SOCKET& sock)
 {
 	sockServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockServer == INVALID_SOCKET) {
 		printf("\033[1;31m[ERROR] Failed to create server socket\033[0m\n");
 		return false;
 	}
+	sock = sockServer;
 
 	int result;
 	SOCKADDR_IN sockAddrServer{};		/* socket通信地址 */
@@ -44,13 +45,14 @@ bool ServerManager::connectServer()
 /*
 * 请求与目的web服务器建立tcp连接，基于ipv6协议
 */
-bool managers::ServerManager::connectIpv6Server()
+bool managers::ServerManager::connectIpv6Server(SOCKET& sock)
 {
 	sockServer = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	if (sockServer == INVALID_SOCKET) {
 		printf("\033[1;31m[ERROR] Failed to create server socket\033[0m\n");
 		return false;
 	}
+	sock = sockServer;
 
 	int result;
 	SOCKADDR_IN6 sockAddrServer{};		/* socket通信地址 */
@@ -74,16 +76,23 @@ bool managers::ServerManager::connectIpv6Server()
 * packLen: 报文长度
 * return: 报文内容
 */
-void ServerManager::recvFromServer(char* buf, int& packLen)
+bool ServerManager::recvFromServer(char* buf, int& packLen)
 {
 	printTime();
-	packLen = recv(sockServer, buf, BUFFER_SIZE, 0);
-	if (packLen > 0)
+	packLen = recv(sockServer, buf, BUFFER_SIZE - 1, 0);
+	if (packLen > 0 && packLen < BUFFER_SIZE) {
+		buf[packLen] = 0;
 		printf("Receive %d bytes from server [%s]%s:%u\n", packLen, serverHost->addr, serverHost->domain.c_str(), serverHost->port);
-	else if (packLen == 0)
+		return true;
+	}
+	else if (packLen == 0) {
 		printf("\033[2;33m[WARNING] The connection is over from server [%s]%s:%u\033[0m\n", serverHost->addr, serverHost->domain.c_str(), serverHost->port);
-	else
+		return false;
+	}
+	else {
 		printf("\033[1;31m[ERROR] Recv failed from server [%s]%s:%u, code = %d\033[0m\n", serverHost->addr, serverHost->domain.c_str(), serverHost->port, WSAGetLastError());
+		return false;
+	}
 }
 
 

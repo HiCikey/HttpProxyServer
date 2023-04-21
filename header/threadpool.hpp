@@ -64,7 +64,7 @@ template<typename T>
 inline queue<T*> ThreadPool<T>::getTaskQueue()
 {
 	unique_lock<mutex> lck(mtx);		//hack return任务队列时是否需要加锁
-	return task_queue;
+	return task_queue;	//todo task中增加一个属性保存当前状态
 }
 
 template<typename T>

@@ -20,8 +20,10 @@ private:
 	char* getIpFromDomain(string domain);
 	char* getIpv6(string domain, ADDRINFOA& hints, char* ipBuf);
 
-	ClientManager* cliManager;			/* 客户端管理器，负责与客户端的通信 */
-	ServerManager* serManager;			/* 服务器端管理器，负责与服务器端通信 */
+	SOCKET clientSocket;
+	SOCKET serverSocket;
+	ClientManager* clientManager;			/* 客户端管理器，负责与客户端的通信 */
+	ServerManager* serverManager;			/* 服务器端管理器，负责与服务器端通信 */
 	char* buffer;						/* 报文缓冲区 */
 	int packLen;						/* 最近一次接收或发送的字节数 */
 	string protocol;					/* 客户端使用的协议类型 */

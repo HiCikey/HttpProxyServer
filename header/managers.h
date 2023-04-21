@@ -25,7 +25,7 @@ namespace managers {
 		ClientManager(SOCKET sockConn, SOCKADDR_IN addr);
 		ClientManager(SOCKET sockConnIpv6, SOCKADDR_IN6 addrIpv6);
 		~ClientManager();
-		void recvFromClient(char* buf, int& packLen);		/* 接收客户端的请求报文 */
+		bool recvFromClient(char* buf, int& packLen);		/* 接收客户端的请求报文 */
 		bool sendToClient(char* buf, int size);				/* 转发服务器的回复报文给客户端 */
 
 		ClientInfoPtr clientHost;		/* 客户端信息 */
@@ -41,9 +41,9 @@ namespace managers {
 	public:
 		ServerManager();
 		~ServerManager();
-		bool connectServer();
-		bool connectIpv6Server();
-		void recvFromServer(char* buf, int& packLen);			/* 接收服务器的回复报文 */
+		bool connectServer(SOCKET& sock);
+		bool connectIpv6Server(SOCKET& sock);
+		bool recvFromServer(char* buf, int& packLen);			/* 接收服务器的回复报文 */
 		bool sendToServer(char* buf, int size);					/* 转发客户端的请求报文给服务器 */
 
 		ServerInfoPtr serverHost;		/* 服务器端信息 */
