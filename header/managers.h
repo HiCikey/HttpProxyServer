@@ -23,7 +23,6 @@ namespace managers {
 	{
 	public:
 		ClientManager(SOCKET sockConn, SOCKADDR_IN addr);
-		ClientManager(SOCKET sockConnIpv6, SOCKADDR_IN6 addrIpv6);
 		~ClientManager();
 		bool recvFromClient(char* buf, int& packLen);		/* 接收客户端的请求报文 */
 		bool sendToClient(char* buf, int size);				/* 转发服务器的回复报文给客户端 */

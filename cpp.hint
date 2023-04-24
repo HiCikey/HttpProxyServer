@@ -7,3 +7,4 @@
 #define QT_BEGIN_NAMESPACE namespace QT_NAMESPACE {
 #define QT_END_NAMESPACE
 #define QT_END_NAMESPACE }
+#define slots

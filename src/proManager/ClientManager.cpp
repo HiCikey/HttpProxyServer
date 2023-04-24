@@ -10,14 +10,6 @@ ClientManager::ClientManager(SOCKET sockConn, SOCKADDR_IN addr)
 	clientHost->port = ntohs(addr.sin_port);
 }
 
-managers::ClientManager::ClientManager(SOCKET sockConnIpv6, SOCKADDR_IN6 addrIpv6)
-{
-	sockClient = sockConnIpv6;
-	clientHost = new ClientInfo();
-	clientHost->addr = new char[ADDRLEN_IPV6];
-	inet_ntop(AF_INET6, &addrIpv6.sin6_addr, clientHost->addr, ADDRLEN_IPV6);
-	clientHost->port = ntohs(addrIpv6.sin6_port);
-}
 
 ClientManager::~ClientManager()
 {

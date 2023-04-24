@@ -6,8 +6,6 @@
 #include <mutex>
 #include <condition_variable>
 
-using namespace std;
-
 #define MAX_THREAD_SIZE 100			/* 线程库中的最大线程数 */
 
 template<typename T>
@@ -16,14 +14,13 @@ class ThreadPool
 public:
 	ThreadPool(int count = 1);
 	~ThreadPool();
-	bool addTask(T* task);
-	queue<T*> getTaskQueue();
+	void addTask(T* task);
 
 private:
-	condition_variable condition;
-	queue<T*> task_queue;
-	mutex mtx;
-	vector<thread> work_threads;
+	std::condition_variable condition;
+	std::queue<T*> task_queue;
+	std::mutex mtx;
+	std::vector<std::thread> work_threads;
 	static void worker(void* arg);
 	void run();
 	bool end;
@@ -33,10 +30,10 @@ template<typename T>
 ThreadPool<T>::ThreadPool(int count) :end(false)
 {
 	if (count <= 0 || count > MAX_THREAD_SIZE)
-		throw exception();
+		throw std::exception();
 	for (int i = 0; i < count; i++)
 		work_threads.emplace_back(worker, this);
-	cout << "Create " << count << " threads" << endl;
+	printf("Create %d threads\n", count);
 }
 
 
@@ -45,26 +42,16 @@ ThreadPool<T>::~ThreadPool()
 {
 	end = true;
 	condition.notify_all();
-	for (thread& wt : work_threads)
+	for (std::thread& wt : work_threads)
 		wt.join();
 }
 
 template<typename T>
-bool ThreadPool<T>::addTask(T* task)
+void ThreadPool<T>::addTask(T* task)
 {
-	if (!task)
-		return false;
-	unique_lock<mutex> lck(mtx);
+	std::unique_lock<std::mutex> lck(mtx);
 	task_queue.push(task);
 	condition.notify_one();
-	return true;
-}
-
-template<typename T>
-inline queue<T*> ThreadPool<T>::getTaskQueue()
-{
-	unique_lock<mutex> lck(mtx);		//hack return任务队列时是否需要加锁
-	return task_queue;	//todo task中增加一个属性保存当前状态
 }
 
 template<typename T>
@@ -79,7 +66,7 @@ void ThreadPool<T>::run()
 {
 	while (!end)
 	{
-		unique_lock<mutex> lck(mtx);
+		std::unique_lock<std::mutex> lck(mtx);
 		condition.wait(lck, [this] {return !task_queue.empty() || end; });
 		if (task_queue.empty())
 			continue;
@@ -88,9 +75,9 @@ void ThreadPool<T>::run()
 			task_queue.pop();
 			lck.unlock();
 			task->startup();
+			task->isEnd = true;
 			Task::count--;
-			delete task;
 		}
-		cout << "-------------------- A task is over --------------------" << endl;
+		printf("-------------------- A task is over --------------------\n");
 	}
 }

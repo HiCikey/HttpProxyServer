@@ -1,18 +1,21 @@
 ﻿#include "task.h"
 
-Task::Task(SOCKET sockConn, SOCKADDR_IN addr) :isIpv4(true)
+Task::Task(SOCKET sockConn, SOCKADDR_IN addr) :isIpv4(true), isReady(false), isEnd(false)
 {
 	clientManager = new ClientManager(sockConn, addr);
 	serverManager = new ServerManager();
 	buffer = new char[BUFFER_SIZE];
 	clientSocket = sockConn;
 	serverSocket = INVALID_SOCKET;
+	source = "";
+	dest = "";
+	domain = "";
 	up_bytes = 0;
 	down_bytes = 0;
 	packLen = -1;
 	protocol = "";
 	httpVersion = "1.1";
-	cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
+	std::cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
 }
 
 Task::~Task()
@@ -20,25 +23,36 @@ Task::~Task()
 	delete buffer;
 	delete clientManager;
 	delete serverManager;
-	cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
+	std::cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
 }
 
+
+inline void Task::generateQString()
+{
+	source = std::string(clientManager->clientHost->addr) + ":" + std::to_string(clientManager->clientHost->port);
+	printf("\n\033[2;33m==========> before getting server info, client port = %d<==========\033[0m\n", clientManager->clientHost->port);
+	dest = std::string(serverManager->serverHost->addr) + ":" + std::to_string(serverManager->serverHost->port);
+	printf("\n\033[2;33m==========> after getting server info <==========\033[0m\n");
+}
 
 void Task::startup()
 {
 	/* 接收客户端的第一个报文，解析使用的传输协议，并与目标服务器建立tcp连接 */
-	if (!clientManager->recvFromClient(buffer, packLen)) return;
-	if (packLen <= 0) return;
+	if (!clientManager->recvFromClient(buffer, packLen))
+		return;
 	getProtAndParseHead();
+	generateQString();
+	isReady = true;
 	if ((isIpv4 && !serverManager->connectServer(serverSocket)) || (!isIpv4 && !serverManager->connectIpv6Server(serverSocket)))
 		return;
 	printf("TCP tunnel has been established   %s:%d | [%s]%s:%u\n", clientManager->clientHost->addr, clientManager->clientHost->port, serverManager->serverHost->addr, serverManager->serverHost->domain.c_str(), serverManager->serverHost->port);
 
 	/* 若为https协议，回复客户端已经建立和服务器之间的tcp连接，并接收客户端的真正https请求报文 */
 	if (protocol == "HTTPS") {
-		string res = "HTTP/" + httpVersion + " 200 Connection established\r\n\r\n";
+		std::string res = "HTTP/" + httpVersion + " 200 Connection established\r\n\r\n";
 		clientManager->sendToClient(const_cast<char*>(res.c_str()), (int)res.size());
-		if (!clientManager->recvFromClient(buffer, packLen)) return;
+		if (!clientManager->recvFromClient(buffer, packLen))
+			return;
 	}
 	serverManager->sendToServer(buffer, packLen);
 	transferLoop();
@@ -60,18 +74,18 @@ void Task::transferLoop()
 		FD_SET(serverSocket, &read_set);
 		select(FD_SETSIZE, &read_set, NULL, NULL, NULL);
 
-		if (FD_ISSET(serverSocket, &read_set)){
+		if (FD_ISSET(serverSocket, &read_set)) {
 			if (!serverManager->recvFromServer(buffer, packLen))
 				break;
 			clientManager->sendToClient(buffer, packLen);
 		}
-		if (FD_ISSET(clientSocket, &read_set)){
+		if (FD_ISSET(clientSocket, &read_set)) {
 			if (!clientManager->recvFromClient(buffer, packLen))
 				break;
 			serverManager->sendToServer(buffer, packLen);
 		}
 	}
-	cout << endl;
+	std::cout << std::endl;
 }
 
 
@@ -82,9 +96,9 @@ void Task::transferLoop()
 */
 void Task::getProtAndParseHead()
 {
-	string bufStr = string(buffer);
-	string line;			/* 报文内容的第一行 */
-	string type;			/* 报文类型 */
+	std::string bufStr = std::string(buffer);
+	std::string line;			/* 报文内容的第一行 */
+	std::string type;			/* 报文类型 */
 
 	line = bufStr.substr(0, bufStr.find("\r\n"));
 	type = line.substr(0, line.find(" "));
@@ -104,11 +118,10 @@ void Task::getProtAndParseHead()
 * 获取目的web服务器的域名、ip、端口
 * CONNECT报文第一行内容格式：CONNECT [domain]:443 HTTP/[version]
 */
-void Task::parseHttpsHead(string line)
+void Task::parseHttpsHead(std::string line)
 {
 	size_t hostLen;		/* 主机长度 */
-	string host;		/* host(domain:port) */
-	string domain;		/* 域名 */
+	std::string host;	/* host(domain:port) */
 
 	hostLen = line.find(" HTTP/") - 8;
 	host = line.substr(8, hostLen);
@@ -117,7 +130,7 @@ void Task::parseHttpsHead(string line)
 
 	serverManager->serverHost->port = 443;		/* https协议服务器端口默认为443 */
 	serverManager->serverHost->domain = domain;
-	serverManager->serverHost->addr = getIpFromDomain(domain);
+	serverManager->serverHost->addr = getIpFromDomain();
 }
 
 
@@ -125,13 +138,12 @@ void Task::parseHttpsHead(string line)
 * 解析http协议 GET或POST 报文头部
 * 获取目的web服务器的域名、ip、端口
 */
-void Task::parseHttpHead(string whole)
+void Task::parseHttpHead(std::string whole)
 {
-	string line;						/* 保存每行内容直到解析出目的主机 */
+	std::string line;						/* 保存每行内容直到解析出目的主机 */
 	int pos = whole.find("\r\n");		/* 用于记录当前行的结束位置 */
 	int size = whole.size();			/* 记录整个请求报文长度 */
 	bool end = false;
-	string domain;
 	int port = 80;						/* http协议服务器端口默认为80 */
 
 	while (!end && pos < size - 2)
@@ -155,7 +167,7 @@ void Task::parseHttpHead(string whole)
 	if (end) {
 		serverManager->serverHost->domain = domain;		/* 保存解析出的目的主机信息 */
 		serverManager->serverHost->port = port;
-		serverManager->serverHost->addr = getIpFromDomain(domain);
+		serverManager->serverHost->addr = getIpFromDomain();
 	}
 }
 
@@ -164,7 +176,7 @@ void Task::parseHttpHead(string whole)
 * 通过目标域名获取目的服务器ipv4地址并返回
 * return: 目的服务器ipv4地址
 */
-char* Task::getIpFromDomain(string domain)
+char* Task::getIpFromDomain()
 {
 	ADDRINFOA hints;		/* 指出调用方支持的套接字类型 */
 	PADDRINFOA res;			/* 链表结构，保存目的主机的所有IP信息 */
@@ -178,7 +190,7 @@ char* Task::getIpFromDomain(string domain)
 
 	if (getaddrinfo(domain.c_str(), NULL, &hints, &res) != 0) {
 		ipBuf = new char[ADDRLEN_IPV6];
-		return getIpv6(domain, hints, ipBuf);		/* 该域名未解析出ipv4地址，则尝试获得域名的ipv6地址 */
+		return getIpv6(hints, ipBuf);		/* 该域名未解析出ipv4地址，则尝试获得域名的ipv6地址 */
 	}
 
 	PSOCKADDR_IN addr;
@@ -192,7 +204,7 @@ char* Task::getIpFromDomain(string domain)
 /*
 * 尝试解析出域名对应的ipv6地址，存入ipBuf中并返回
 */
-char* Task::getIpv6(string domain, ADDRINFOA& hints, char* ipBuf)
+char* Task::getIpv6(ADDRINFOA& hints, char* ipBuf)
 {
 	PADDRINFOA res;
 	hints.ai_family = AF_INET6;

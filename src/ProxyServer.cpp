@@ -17,6 +17,8 @@ void ProxyServer::proxyStartUp()
 {
 	if (!initial()) return;
 	pool = new ThreadPool<Task>(THREAD_COUNT);
+	/*std::unique_lock<std::mutex> lck(mtx_tasks);
+	lck.unlock();*/
 	while (true)
 	{
 		// 从监听队列中取出一个连接请求，若无则阻塞
@@ -28,23 +30,26 @@ void ProxyServer::proxyStartUp()
 
 		Task::count++;
 		Task* task = new Task(sockConn, addr);
-		pool->addTask(task);
+		if (task != NULL) {
+			pool->addTask(task);
+			//lck.lock();
+			//tasks.emplace_back(task);
+			//lck.unlock();
+		}
 	}
 	closesocket(sockListen);
 	WSACleanup();
 }
 
-
-/*
-* 返回当前任务队列，用于主窗口显示当前各客户端-服务器连接状态
-*/
-queue<Task*> ProxyServer::getTasks()
-{
-	if (pool == nullptr)
-		return queue<Task*>();
-	else
-		return pool->getTaskQueue();
-}
+//void ProxyServer::deleteTask(int taskSeq)
+//{
+//	Task* task = nullptr;
+//	std::unique_lock<std::mutex> lck(mtx_tasks);
+//	task = tasks.at(taskSeq);
+//	tasks.erase(tasks.begin() + taskSeq);
+//	lck.unlock();
+//	delete task;
+//}
 
 
 /*
@@ -56,12 +61,12 @@ bool ProxyServer::initial()
 	// 加载Winsock库
 	WSADATA data;
 	if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
-		cout << "WSAStartup failed!!!" << endl;
+		std::cout << "WSAStartup failed!!!" << std::endl;
 		return false;
 	}
-	cout << "Succeed to initiate Winsock library...\n\n";
+	std::cout << "Succeed to initiate Winsock library...\n\n";
 	if (LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 2) {
-		cout << "Cannot find specified Winsock library version!!!" << endl;
+		std::cout << "Cannot find specified Winsock library version!!!" << std::endl;
 		WSACleanup();
 		return false;
 	}

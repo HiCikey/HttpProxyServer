@@ -1,10 +1,13 @@
 ﻿#pragma once
 #include <iostream>
 #include <string>
+#include <mutex>
 
-#define BUFFER_SIZE 100*1024			/* 报文缓冲区大小 */
+#define BUFFER_SIZE 1024*1024			/* 报文缓冲区大小 */
 #define ADDRLEN_IPV4 16					/* ipv4地址缓冲区大小 */
 #define ADDRLEN_IPV6 46					/* ipv6地址缓冲区大小 */
+
+static std::mutex mtx_tasks;
 
 /* 客户端信息结构体 */
 typedef struct ClientInfo {

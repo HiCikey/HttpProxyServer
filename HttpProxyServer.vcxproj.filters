@@ -66,12 +66,12 @@
     <ClInclude Include="header\task.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="header\proxyserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="header\MainWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="header\proxyserver.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
