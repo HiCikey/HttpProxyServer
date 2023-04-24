@@ -30,9 +30,7 @@ Task::~Task()
 inline void Task::generateQString()
 {
 	source = std::string(clientManager->clientHost->addr) + ":" + std::to_string(clientManager->clientHost->port);
-	printf("\n\033[2;33m==========> before getting server info, client port = %d<==========\033[0m\n", clientManager->clientHost->port);
 	dest = std::string(serverManager->serverHost->addr) + ":" + std::to_string(serverManager->serverHost->port);
-	printf("\n\033[2;33m==========> after getting server info <==========\033[0m\n");
 }
 
 void Task::startup()

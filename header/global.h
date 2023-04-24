@@ -7,7 +7,7 @@
 #define ADDRLEN_IPV4 16					/* ipv4地址缓冲区大小 */
 #define ADDRLEN_IPV6 46					/* ipv6地址缓冲区大小 */
 
-static std::mutex mtx_tasks;
+static std::mutex mtx_tasks;			/* 访问任务列表的互斥锁 */
 
 /* 客户端信息结构体 */
 typedef struct ClientInfo {

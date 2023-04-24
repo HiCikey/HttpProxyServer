@@ -17,8 +17,8 @@ void ProxyServer::proxyStartUp()
 {
 	if (!initial()) return;
 	pool = new ThreadPool<Task>(THREAD_COUNT);
-	/*std::unique_lock<std::mutex> lck(mtx_tasks);
-	lck.unlock();*/
+	std::unique_lock<std::mutex> lck(mtx_tasks);
+	lck.unlock();
 	while (true)
 	{
 		// 从监听队列中取出一个连接请求，若无则阻塞
@@ -32,24 +32,24 @@ void ProxyServer::proxyStartUp()
 		Task* task = new Task(sockConn, addr);
 		if (task != NULL) {
 			pool->addTask(task);
-			//lck.lock();
-			//tasks.emplace_back(task);
-			//lck.unlock();
+			lck.lock();
+			tasks.emplace_back(task);
+			lck.unlock();
 		}
 	}
 	closesocket(sockListen);
 	WSACleanup();
 }
 
-//void ProxyServer::deleteTask(int taskSeq)
-//{
-//	Task* task = nullptr;
-//	std::unique_lock<std::mutex> lck(mtx_tasks);
-//	task = tasks.at(taskSeq);
-//	tasks.erase(tasks.begin() + taskSeq);
-//	lck.unlock();
-//	delete task;
-//}
+void ProxyServer::deleteTask(int taskSeq)
+{
+	Task* task = nullptr;
+	std::unique_lock<std::mutex> lck(mtx_tasks);
+	task = tasks.at(taskSeq);
+	tasks.erase(tasks.begin() + taskSeq);
+	lck.unlock();
+	delete task;
+}
 
 
 /*
