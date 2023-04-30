@@ -93,6 +93,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="header\RuleManager.cpp" />
+    <ClCompile Include="src\MyListWidget.cpp" />
     <ClCompile Include="src\MainWidget.cpp" />
     <ClCompile Include="src\proManager\ClientManager.cpp" />
     <ClCompile Include="src\proManager\ServerManager.cpp" />
@@ -101,9 +102,11 @@
     <QtRcc Include="MainWidget.qrc" />
     <QtUic Include="MainWidget.ui" />
     <ClCompile Include="main.cpp" />
+    <QtUic Include="MyListWidget.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\global.h" />
+    <QtMoc Include="header\MyListWidget.h" />
     <QtMoc Include="header\MainWidget.h" />
     <ClInclude Include="header\managers.h" />
     <ClInclude Include="header\proxyserver.h" />

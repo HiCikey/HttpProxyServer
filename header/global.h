@@ -23,6 +23,12 @@ typedef struct ServerInfo {
 	std::string domain;			/* 域名 */
 }*ServerInfoPtr;
 
+enum model {
+	MODEL_IP,
+	MODEL_DOMAIN,
+	MODEL_TYPE
+};
+
 /*
 * 打印当前时间
 */

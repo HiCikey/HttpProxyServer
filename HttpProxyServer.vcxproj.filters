@@ -52,6 +52,9 @@
     <ClCompile Include="header\RuleManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\MyListWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\global.h">
@@ -74,8 +77,16 @@
     <QtMoc Include="header\MainWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="header\MyListWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="MyListWidget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>

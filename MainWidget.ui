@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>330</height>
+    <height>392</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -97,35 +97,65 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>660</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menu">
-    <property name="title">
-     <string>域名规则</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menu_2">
-    <property name="title">
-     <string>IP规则</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menu_3">
-    <property name="title">
-     <string>文件类型规则</string>
-    </property>
-   </widget>
-   <addaction name="menu_2"/>
-   <addaction name="menu"/>
-   <addaction name="menu_3"/>
-  </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::TopToolBarArea</set>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_ip"/>
+   <addaction name="separator"/>
+   <addaction name="action_domain"/>
+   <addaction name="separator"/>
+   <addaction name="action_type"/>
+  </widget>
+  <action name="action_ip">
+   <property name="text">
+    <string>ip规则(A)</string>
+   </property>
+   <property name="toolTip">
+    <string>客户端IP黑名单</string>
+   </property>
+   <property name="shortcut">
+    <string>A</string>
+   </property>
+  </action>
+  <action name="action_domain">
+   <property name="text">
+    <string>域名规则(D)</string>
+   </property>
+   <property name="toolTip">
+    <string>访问的域名黑名单</string>
+   </property>
+   <property name="shortcut">
+    <string>D</string>
+   </property>
+  </action>
+  <action name="action_type">
+   <property name="text">
+    <string>类型规则(T)</string>
+   </property>
+   <property name="toolTip">
+    <string>传输文件类型黑名单</string>
+   </property>
+   <property name="shortcut">
+    <string>T</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

@@ -1,8 +1,5 @@
 ﻿#include "MainWidget.h"
-#include <iostream>
-#include "mysql.h"
-
-using namespace std;
+#include <stdio.h>
 
 MainWidget::MainWidget(QWidget* parent)
 	: QMainWindow(parent)
@@ -10,12 +7,16 @@ MainWidget::MainWidget(QWidget* parent)
 {
 	ui->setupUi(this);
 	setWindowTitle("代理服务器");
+	move(250, 190);
 
+	/* 创建代理和定时器并启动 */
 	proxy = new ProxyServer();
 	timer = new QTimer(this);
 	workThreads.emplace_back(proxyThread, proxy);
 	QObject::connect(timer, &QTimer::timeout, this, &MainWidget::updateTaskTable);
 	timer->start(UPDATE_INTERVAL);
+
+	setMenuBarBotton();
 }
 
 MainWidget::~MainWidget()
@@ -34,17 +35,39 @@ void MainWidget::proxyThread(ProxyServer* p)
 }
 
 /*
+* 设置菜单栏各按钮的连接关系
+*/
+void MainWidget::setMenuBarBotton()
+{
+	QObject::connect(ui->action_ip, &QAction::triggered, [=]() {
+		MyListWidget* lw = new MyListWidget(proxy, model::MODEL_IP);
+		lw->setDetail();
+		lw->show();
+		});
+
+	QObject::connect(ui->action_domain, &QAction::triggered, [=]() {
+		MyListWidget* lw = new MyListWidget(proxy, model::MODEL_DOMAIN);
+		lw->setDetail();
+		lw->show();
+		});
+
+	QObject::connect(ui->action_type, &QAction::triggered, [=]() {
+		MyListWidget* lw = new MyListWidget(proxy, model::MODEL_TYPE);
+		lw->setDetail();
+		lw->show();
+		});
+}
+
+/*
 * 定时更新GUI首页的任务表格
 */
 void MainWidget::updateTaskTable()
 {
-	printf("\n\033[1;31m==========> updating starts <==========\033[0m\n");
 	int taskCount = 0;
 	Task* task = nullptr;
 	std::unique_lock<std::mutex> lck(mtx_tasks);
 	taskCount = proxy->tasks.size();	/* 记录这个时刻的任务数量 */
 	lck.unlock();
-	printf("\n\033[1;31m==========> I released the lock <==========\033[0m\n");
 
 	ui->tableWidget->setRowCount(taskCount);
 	for (int i = 0; i < taskCount; i++)
@@ -68,5 +91,4 @@ void MainWidget::updateTaskTable()
 			ui->tableWidget->setItem(i, 4, new QTableWidgetItem(QString::fromStdString(task->domain)));
 		}
 	}
-	printf("\n\033[1;31m==========> updating ends <==========\033[0m\n");
 }
