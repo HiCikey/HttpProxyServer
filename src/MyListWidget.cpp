@@ -1,9 +1,10 @@
 ﻿#include "MyListWidget.h"
 #include <QMessageBox>
 
-MyListWidget::MyListWidget(ProxyServer* p, int m, QWidget* parent)
+MyListWidget::MyListWidget(RuleManager* manager, int m, QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::MyListWidgetClass())
+	, rule(manager)
 	, mode(m)
 {
 	ui->setupUi(this);
@@ -11,7 +12,6 @@ MyListWidget::MyListWidget(ProxyServer* p, int m, QWidget* parent)
 	move(760, 200);
 	setWindowModality(Qt::ApplicationModal);
 	setAttribute(Qt::WA_DeleteOnClose);
-	proxy = p;
 }
 
 MyListWidget::~MyListWidget()
@@ -26,15 +26,15 @@ void MyListWidget::setDetail()
 	// 通过代理获取当前黑名单
 	if (mode == MODEL_IP) {
 		setWindowTitle("客户端IP黑名单");
-		black_list = proxy->getIpList();
+		black_list = rule->getIpList();
 	}
 	else if (mode == MODEL_DOMAIN) {
 		setWindowTitle("访问的域名黑名单");
-		black_list = proxy->getDomainList();
+		black_list = rule->getDomainList();
 	}
 	else if (mode == MODEL_TYPE) {
 		setWindowTitle("传输文件类型黑名单");
-		black_list = proxy->getTypeList();
+		black_list = rule->getTypeList();
 	}
 
 	// 打印黑名单到窗口
@@ -59,15 +59,15 @@ void MyListWidget::buttonAddClicked()
 	// 标记添加操作是否成功
 	bool success = false;
 	if (mode == MODEL_IP) {
-		if (proxy->addIp(str))
+		if (rule->addIp(str))
 			success = true;
 	}
 	else if (mode == MODEL_DOMAIN) {
-		if (proxy->addDomain(str))
+		if (rule->addDomain(str))
 			success = true;
 	}
 	else if (mode == MODEL_TYPE) {
-		if (proxy->addType(str))
+		if (rule->addType(str))
 			success = true;
 	}
 	// 检查添加操作是否成功并进行相应操作
@@ -94,21 +94,21 @@ void MyListWidget::buttonEditClicked()
 	// 先添加修改后的内容，再删除原来的内容
 	bool success = false;
 	std::string prevStr = ui->listWidget->currentItem()->text().toStdString();
-	if (mode == MODEL_IP){
-		if (proxy->addIp(curStr)) {
-			proxy->deleteIp(prevStr);
+	if (mode == MODEL_IP) {
+		if (rule->addIp(curStr)) {
+			rule->deleteIp(prevStr);
 			success = true;
 		}
 	}
-	else if (mode == MODEL_DOMAIN){
-		if (proxy->addDomain(curStr)) {
-			proxy->deleteDomain(prevStr);
+	else if (mode == MODEL_DOMAIN) {
+		if (rule->addDomain(curStr)) {
+			rule->deleteDomain(prevStr);
 			success = true;
 		}
 	}
-	else if (mode == MODEL_TYPE){
-		if (proxy->addType(curStr)) {
-			proxy->deleteType(prevStr);
+	else if (mode == MODEL_TYPE) {
+		if (rule->addType(curStr)) {
+			rule->deleteType(prevStr);
 			success = true;
 		}
 	}
@@ -131,10 +131,10 @@ void MyListWidget::buttonDeleteClicked()
 	// 调用函数删除数据库中对应项
 	QListWidgetItem* item = ui->listWidget->takeItem(ui->listWidget->currentRow());
 	if (mode == model::MODEL_IP)
-		proxy->deleteIp(item->text().toStdString());
+		rule->deleteIp(item->text().toStdString());
 	else if (mode == model::MODEL_DOMAIN)
-		proxy->deleteDomain(item->text().toStdString());
+		rule->deleteDomain(item->text().toStdString());
 	else if (mode == model::MODEL_TYPE)
-		proxy->deleteType(item->text().toStdString());
+		rule->deleteType(item->text().toStdString());
 	delete item;
 }

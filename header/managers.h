@@ -3,6 +3,8 @@
 #include "global.h"
 #include <WinSock2.h>
 #include<WS2tcpip.h>
+#include "mysql.h"
+#include <set>
 #pragma comment(lib,"ws2_32.lib")
 
 namespace managers {
@@ -56,12 +58,35 @@ namespace managers {
 	class RuleManager
 	{
 	public:
-		static RuleManager* getInstance() { return nullptr; }		//hack RuleManager修改，继续使用单例模式？
-	private:
 		RuleManager();
 		~RuleManager();
-		//static RuleManager* ruleManager;	/* 类单例，保证整个系统只有一个规则管理员 */
+
+		bool setBlackList();			/* 获取数据库中的黑名单 */
+
+		// 获取内存中的黑名单副本
+		std::set<std::string> getIpList();
+		std::set<std::string> getDomainList();
+		std::set<std::string> getTypeList();
+
+		// 黑名单中增加一项
+		bool addIp(std::string str);
+		bool addDomain(std::string str);
+		bool addType(std::string str);
+
+		// 黑名单中删除一项
+		void deleteIp(std::string str);
+		void deleteDomain(std::string str);
+		void deleteType(std::string str);
+	private:
+		MYSQL mysql;
+
+		/* 黑名单相关数据结构 */
+		std::set<std::string> black_domain;	/* 访问域名黑名单 */
+		std::set<std::string> black_ip;		/* 客户端ipv4地址黑名单 */
+		std::set<std::string> black_type;	/* 传输文件类型黑名单 */
+
+		void setDomainList();
+		void setIpList();
+		void setTypeList();
 	};
 }
-
-//RuleManager* RuleManager::ruleManager = new RuleManager();

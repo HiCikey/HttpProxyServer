@@ -14,14 +14,14 @@ class MyListWidget : public QWidget
 	Q_OBJECT
 
 public:
-	MyListWidget(ProxyServer* p, int m, QWidget* parent = nullptr);
+	MyListWidget(RuleManager* manager, int m, QWidget* parent = nullptr);
 	~MyListWidget();
 
 	void setDetail();
 private:
 	Ui::MyListWidgetClass* ui;
 
-	ProxyServer* proxy;
+	RuleManager* rule;
 	int mode;
 public slots:
 	void buttonAddClicked();

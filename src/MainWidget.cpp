@@ -40,19 +40,19 @@ void MainWidget::proxyThread(ProxyServer* p)
 void MainWidget::setMenuBarBotton()
 {
 	QObject::connect(ui->action_ip, &QAction::triggered, [=]() {
-		MyListWidget* lw = new MyListWidget(proxy, model::MODEL_IP);
+		MyListWidget* lw = new MyListWidget(proxy->ruleManager, MODEL_IP);
 		lw->setDetail();
 		lw->show();
 		});
 
 	QObject::connect(ui->action_domain, &QAction::triggered, [=]() {
-		MyListWidget* lw = new MyListWidget(proxy, model::MODEL_DOMAIN);
+		MyListWidget* lw = new MyListWidget(proxy->ruleManager, MODEL_DOMAIN);
 		lw->setDetail();
 		lw->show();
 		});
 
 	QObject::connect(ui->action_type, &QAction::triggered, [=]() {
-		MyListWidget* lw = new MyListWidget(proxy, model::MODEL_TYPE);
+		MyListWidget* lw = new MyListWidget(proxy->ruleManager, MODEL_TYPE);
 		lw->setDetail();
 		lw->show();
 		});
