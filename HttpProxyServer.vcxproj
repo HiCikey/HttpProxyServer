@@ -92,10 +92,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="header\RuleManager.cpp" />
     <ClCompile Include="src\MyListWidget.cpp" />
     <ClCompile Include="src\MainWidget.cpp" />
     <ClCompile Include="src\proManager\ClientManager.cpp" />
+    <ClCompile Include="src\proManager\RuleManager.cpp" />
     <ClCompile Include="src\proManager\ServerManager.cpp" />
     <ClCompile Include="src\ProxyServer.cpp" />
     <ClCompile Include="src\Task.cpp" />

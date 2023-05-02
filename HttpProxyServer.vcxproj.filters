@@ -49,10 +49,10 @@
     <ClCompile Include="src\Task.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="header\RuleManager.cpp">
+    <ClCompile Include="src\MyListWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MyListWidget.cpp">
+    <ClCompile Include="src\proManager\RuleManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
