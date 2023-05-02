@@ -21,13 +21,14 @@ public:
 
 private:
     Ui::MainWidgetClass *ui;
-    std::vector<std::thread> workThreads;
+    QTimer* timer;              /* 定时器，用于更新GUI首页的任务表格 */
     ProxyServer* proxy;
-    QTimer* timer;                  /* 定时器，用于更新GUI首页的任务表格 */
+    std::vector<std::thread> workThreads;
 
+    // 设置菜单栏各按钮的连接关系
+    void setMenuBarBotton();
     static void proxyThread(ProxyServer* p);
-    void setMenuBarBotton();        /* 设置菜单栏各按钮的连接关系 */
 
 public slots:
-    void updateTaskTable();         /* 自定义槽函数，定时更新GUI首页的任务表格 */
+    void updateTaskTable();     /* 自定义槽函数，定时更新GUI首页的任务表格 */
 };

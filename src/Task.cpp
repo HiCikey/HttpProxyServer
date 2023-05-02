@@ -1,6 +1,10 @@
 ﻿#include "task.h"
 
-Task::Task(SOCKET sockConn, SOCKADDR_IN addr) :isIpv4(true), isReady(false), isEnd(false)
+Task::Task(RuleManager* rule, SOCKET sockConn, SOCKADDR_IN addr)
+	: ruleManager(rule)
+	, isIpv4(true)
+	, isReady(false)
+	, isEnd(false)
 {
 	clientManager = new ClientManager(sockConn, addr);
 	serverManager = new ServerManager();
@@ -26,21 +30,10 @@ Task::~Task()
 	std::cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
 }
 
-
-inline void Task::generateQString()
-{
-	source = std::string(clientManager->clientHost->addr) + ":" + std::to_string(clientManager->clientHost->port);
-	dest = std::string(serverManager->serverHost->addr) + ":" + std::to_string(serverManager->serverHost->port);
-}
-
 void Task::startup()
 {
-	/* 接收客户端的第一个报文，解析使用的传输协议，并与目标服务器建立tcp连接 */
-	if (!clientManager->recvFromClient(buffer, packLen))
+	if (!checkFirst())
 		return;
-	getProtAndParseHead();
-	generateQString();
-	isReady = true;
 	if ((isIpv4 && !serverManager->connectServer(serverSocket)) || (!isIpv4 && !serverManager->connectIpv6Server(serverSocket)))
 		return;
 	printf("TCP tunnel has been established   %s:%d | [%s]%s:%u\n", clientManager->clientHost->addr, clientManager->clientHost->port, serverManager->serverHost->addr, serverManager->serverHost->domain.c_str(), serverManager->serverHost->port);
@@ -54,6 +47,59 @@ void Task::startup()
 	}
 	serverManager->sendToServer(buffer, packLen);
 	transferLoop();
+}
+
+
+/* 与服务器连接前的一系列操作 */
+bool Task::checkFirst()
+{
+	if (!isClientLegal())
+		return false;
+	if (!clientManager->recvFromClient(buffer, packLen))
+		return false;
+	getProtAndParseHead();
+	if (!isDomainLegal())
+		return false;
+	if (protocol == "HTTP" && !isTypeLegal())
+		return false;
+	generateQString();
+	isReady = true;
+	return true;
+}
+
+
+/*  检查客户端IP是否合法*/
+bool Task::isClientLegal()
+{
+	std::string clientIp = std::string(clientManager->clientHost->addr);
+	return !ruleManager->checkIp(clientIp);
+}
+
+
+/* 检查要访问的域名是否合法 */
+inline bool Task::isDomainLegal()
+{
+	return !ruleManager->checkDomain(domain);
+}
+
+
+/* 检查传输文件类型是否合法 */
+bool Task::isTypeLegal()
+{
+	int dotLoc = -1, leanLine = -1;
+	std::string type = firstLine.substr(firstLine.find(" ") + 1);	/* 提取出url部分存在type中 */
+	type = type.substr(0, type.rfind(" HTTP"));
+	dotLoc = type.rfind(".");		/* 判断该报文是否指定接受的文件后缀 */
+	if (dotLoc == -1)
+		return true;
+	type = type.substr(dotLoc);
+	return !ruleManager->checkType(type);
+}
+
+inline void Task::generateQString()
+{
+	source = std::string(clientManager->clientHost->addr) + ":" + std::to_string(clientManager->clientHost->port);
+	dest = std::string(serverManager->serverHost->addr) + ":" + std::to_string(serverManager->serverHost->port);
 }
 
 
@@ -72,18 +118,21 @@ void Task::transferLoop()
 		FD_SET(serverSocket, &read_set);
 		select(FD_SETSIZE, &read_set, NULL, NULL, NULL);
 
+		// 服务器--->客户端有信息要转发
 		if (FD_ISSET(serverSocket, &read_set)) {
 			if (!serverManager->recvFromServer(buffer, packLen))
 				break;
 			clientManager->sendToClient(buffer, packLen);
 		}
+		// 客户端--->服务器有信息要转发
 		if (FD_ISSET(clientSocket, &read_set)) {
 			if (!clientManager->recvFromClient(buffer, packLen))
+				break;
+			if (protocol == "HTTP" && !isTypeLegal())
 				break;
 			serverManager->sendToServer(buffer, packLen);
 		}
 	}
-	std::cout << std::endl;
 }
 
 
@@ -138,11 +187,12 @@ void Task::parseHttpsHead(std::string line)
 */
 void Task::parseHttpHead(std::string whole)
 {
-	std::string line;						/* 保存每行内容直到解析出目的主机 */
+	std::string line;					/* 保存每行内容直到解析出目的主机 */
 	int pos = whole.find("\r\n");		/* 用于记录当前行的结束位置 */
 	int size = whole.size();			/* 记录整个请求报文长度 */
 	bool end = false;
 	int port = 80;						/* http协议服务器端口默认为80 */
+	firstLine = whole.substr(0, pos);
 
 	while (!end && pos < size - 2)
 	{
@@ -170,10 +220,7 @@ void Task::parseHttpHead(std::string whole)
 }
 
 
-/*
-* 通过目标域名获取目的服务器ipv4地址并返回
-* return: 目的服务器ipv4地址
-*/
+/* 通过目标域名获取目的服务器ip地址 */
 char* Task::getIpFromDomain()
 {
 	ADDRINFOA hints;		/* 指出调用方支持的套接字类型 */
@@ -199,9 +246,7 @@ char* Task::getIpFromDomain()
 }
 
 
-/*
-* 尝试解析出域名对应的ipv6地址，存入ipBuf中并返回
-*/
+/* 尝试解析出域名对应的ipv6地址，存入ipBuf中 */
 char* Task::getIpv6(ADDRINFOA& hints, char* ipBuf)
 {
 	PADDRINFOA res;

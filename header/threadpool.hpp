@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <iostream>
+#include <stdio.h>
 #include <vector>
 #include <queue>
 #include <thread>
@@ -76,8 +77,8 @@ void ThreadPool<T>::run()
 			lck.unlock();
 			task->startup();
 			task->isEnd = true;
+			printf("\n\n");
 			Task::count--;
 		}
-		printf("-------------------- A task is over --------------------\n");
 	}
 }

@@ -61,7 +61,8 @@ namespace managers {
 		RuleManager();
 		~RuleManager();
 
-		bool setBlackList();			/* 获取数据库中的黑名单 */
+		// 获取数据库中的黑名单
+		bool setBlackList();
 
 		// 获取内存中的黑名单副本
 		std::set<std::string> getIpList();
@@ -77,6 +78,11 @@ namespace managers {
 		void deleteIp(std::string str);
 		void deleteDomain(std::string str);
 		void deleteType(std::string str);
+
+		// 查看黑名单中是否有指定内容
+		bool checkIp(std::string str);
+		bool checkDomain(std::string str);
+		bool checkType(std::string str);
 	private:
 		MYSQL mysql;
 
@@ -84,6 +90,9 @@ namespace managers {
 		std::set<std::string> black_domain;	/* 访问域名黑名单 */
 		std::set<std::string> black_ip;		/* 客户端ipv4地址黑名单 */
 		std::set<std::string> black_type;	/* 传输文件类型黑名单 */
+		std::mutex mtx_domain;
+		std::mutex mtx_ip;
+		std::mutex mtx_type;
 
 		void setDomainList();
 		void setIpList();

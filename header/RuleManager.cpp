@@ -33,10 +33,6 @@ std::set<std::string> RuleManager::getTypeList()
 	return black_type;
 }
 
-
-/*
-* 客户端IP黑名单中增加一项
-*/
 bool RuleManager::addIp(std::string str)
 {
 	// 插入内存
@@ -52,10 +48,6 @@ bool RuleManager::addIp(std::string str)
 	return true;
 }
 
-
-/*
-* 域名黑名单中增加一项
-*/
 bool RuleManager::addDomain(std::string str)
 {
 	// 插入内存
@@ -71,10 +63,6 @@ bool RuleManager::addDomain(std::string str)
 	return true;
 }
 
-
-/*
-* 传输文件类型黑名单中增加一项
-*/
 bool RuleManager::addType(std::string str)
 {
 	// 插入内存
@@ -90,10 +78,6 @@ bool RuleManager::addType(std::string str)
 	return true;
 }
 
-
-/*
-* 客户端IP黑名单中删除一项
-*/
 void RuleManager::deleteIp(std::string str)
 {
 	std::unique_lock<std::mutex> lck(mtx_ip);
@@ -106,10 +90,6 @@ void RuleManager::deleteIp(std::string str)
 	mysql_query(&mysql, query.c_str());
 }
 
-
-/*
-* 域名黑名单中删除一项
-*/
 void RuleManager::deleteDomain(std::string str)
 {
 	std::unique_lock<std::mutex> lck(mtx_domain);
@@ -122,10 +102,6 @@ void RuleManager::deleteDomain(std::string str)
 	mysql_query(&mysql, query.c_str());
 }
 
-
-/*
-* 传输文件类型黑名单中删除一项
-*/
 void RuleManager::deleteType(std::string str)
 {
 	std::unique_lock<std::mutex> lck(mtx_type);
@@ -136,6 +112,39 @@ void RuleManager::deleteType(std::string str)
 
 	std::string query = "delete from black_type where type='" + str + "';";
 	mysql_query(&mysql, query.c_str());
+}
+
+bool managers::RuleManager::checkIp(std::string str)
+{
+	std::unique_lock<std::mutex> lck(mtx_ip);
+	if (black_ip.count(str) == 0)
+		return false;
+	else {
+		printf("\033[2;33m[WARNING] The client ip \"%s\" is forbidden\033[0m\n", str.c_str());
+		return true;
+	}
+}
+
+bool managers::RuleManager::checkDomain(std::string str)
+{
+	std::unique_lock<std::mutex> lck(mtx_domain);
+	if (black_domain.count(str) == 0)
+		return false;
+	else {
+		printf("\033[2;33m[WARNING] The domain \"%s\" is forbidden\033[0m\n", str.c_str());
+		return true;
+	}
+}
+
+bool managers::RuleManager::checkType(std::string str)
+{
+	std::unique_lock<std::mutex> lck(mtx_type);
+	if (black_type.count(str) == 0)
+		return false;
+	else {
+		printf("\033[2;33m[WARNING] The file type \"%s\" is forbidden\033[0m\n", str.c_str());
+		return true;
+	}
 }
 
 

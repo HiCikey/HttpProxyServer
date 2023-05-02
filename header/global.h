@@ -3,23 +3,20 @@
 #include <string>
 #include <mutex>
 
-#define BUFFER_SIZE 1024*1024			/* 报文缓冲区大小 */
-#define ADDRLEN_IPV4 16					/* ipv4地址缓冲区大小 */
-#define ADDRLEN_IPV6 46					/* ipv6地址缓冲区大小 */
+#define BUFFER_SIZE 1024*1024	/* 报文缓冲区大小 */
+#define ADDRLEN_IPV4 16			/* ipv4地址缓冲区大小 */
+#define ADDRLEN_IPV6 46			/* ipv6地址缓冲区大小 */
 
-static std::mutex mtx_tasks;			/* 访问任务列表的互斥锁 */
-static std::mutex mtx_domain;
-static std::mutex mtx_ip;
-static std::mutex mtx_type;
+static std::mutex mtx_tasks;	/* 访问任务列表的互斥锁 */
 
-/* 客户端信息结构体 */
+// 客户端信息结构体
 typedef struct ClientInfo {
 	char* addr = NULL;			/* IP地址 */
 	unsigned short port = 0;	/* 端口号 */
 }*ClientInfoPtr;
 
 
-/* 服务器端信息结构体 */
+// 服务器端信息结构体
 typedef struct ServerInfo {
 	char* addr = NULL;			/* IP地址 */
 	unsigned short port = 0;	/* 端口号 */
@@ -32,9 +29,7 @@ enum model {
 	MODEL_TYPE
 };
 
-/*
-* 打印当前时间
-*/
+// 打印当前时间
 static void printTime()
 {
 	std::string str = "";

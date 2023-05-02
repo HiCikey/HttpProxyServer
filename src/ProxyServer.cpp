@@ -14,7 +14,6 @@ ProxyServer::~ProxyServer()
 	delete ruleManager;
 }
 
-
 void ProxyServer::proxyStartUp()
 {
 	if (!initial() || !ruleManager->setBlackList())
@@ -33,7 +32,7 @@ void ProxyServer::proxyStartUp()
 
 		// 新建一个任务并交给线程池处理
 		Task::count++;
-		Task* task = new Task(sockConn, addr);
+		Task* task = new Task(ruleManager, sockConn, addr);
 		if (task != NULL) {
 			pool->addTask(task);
 			lck.lock();
@@ -83,9 +82,7 @@ bool ProxyServer::initial()
 }
 
 
-/*
-* 创建监听ipv4的socket，绑定通信地址，代理服务器开始监听
-*/
+/* 创建监听ipv4的socket，绑定通信地址，代理服务器开始监听 */
 bool ProxyServer::creatSocket()
 {
 	// 创建监听ipv4客户端的socket
