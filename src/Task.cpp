@@ -1,7 +1,8 @@
 ﻿#include "task.h"
 
-Task::Task(RuleManager* rule, SOCKET sockConn, SOCKADDR_IN addr)
+Task::Task(RuleManager* rule, CacheManager* cache, SOCKET sockConn, SOCKADDR_IN addr)
 	: ruleManager(rule)
+	, cacheManager(cache)
 	, isIpv4(true)
 	, isReady(false)
 	, isEnd(false)
@@ -14,12 +15,12 @@ Task::Task(RuleManager* rule, SOCKET sockConn, SOCKADDR_IN addr)
 	source = "";
 	dest = "";
 	domain = "";
+	url = "";
 	up_bytes = 0;
 	down_bytes = 0;
 	packLen = -1;
 	protocol = "";
 	httpVersion = "1.1";
-	std::cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
 }
 
 Task::~Task()
@@ -27,46 +28,53 @@ Task::~Task()
 	delete buffer;
 	delete clientManager;
 	delete serverManager;
-	std::cout << "\n!!!!!!!!!!!!!!! There are " << count << " tasks now !!!!!!!!!!!!!!!\n\n";
 }
 
 void Task::startup()
 {
-	if (!checkFirst())
-		return;
-	if ((isIpv4 && !serverManager->connectServer(serverSocket)) || (!isIpv4 && !serverManager->connectIpv6Server(serverSocket)))
-		return;
+	if (!isClientLegal() || !clientManager->recvFromClient(buffer, packLen)) return;
+	getProtAndParseHead();
+	if (!isDomainLegal()) return;
+
+	if ((isIpv4 && !serverManager->connectServer(serverSocket)) || (!isIpv4 && !serverManager->connectIpv6Server(serverSocket))) return;
 	printf("TCP tunnel has been established   %s:%d | [%s]%s:%u\n", clientManager->clientHost->addr, clientManager->clientHost->port, serverManager->serverHost->addr, serverManager->serverHost->domain.c_str(), serverManager->serverHost->port);
 
-	/* 若为https协议，回复客户端已经建立和服务器之间的tcp连接，并接收客户端的真正https请求报文 */
-	if (protocol == "HTTPS") {
-		std::string res = "HTTP/" + httpVersion + " 200 Connection established\r\n\r\n";
-		clientManager->sendToClient(const_cast<char*>(res.c_str()), (int)res.size());
-		if (!clientManager->recvFromClient(buffer, packLen))
-			return;
-	}
+	if (protocol == "HTTP" && !preCheckHttp())
+		return;
+	else if (protocol == "HTTPS" && !preCheckHttps())
+		return;
+
 	serverManager->sendToServer(buffer, packLen);
 	transferLoop();
 }
 
 
-/* 与服务器连接前的一系列操作 */
-bool Task::checkFirst()
+bool Task::preCheckHttp()
 {
-	if (!isClientLegal())
-		return false;
-	if (!clientManager->recvFromClient(buffer, packLen))
-		return false;
-	getProtAndParseHead();
-	if (!isDomainLegal())
-		return false;
-	if (protocol == "HTTP" && !isTypeLegal())
-		return false;
+	if (!isTypeLegal()) return false;
+	std::pair<char*, int> res = cacheManager->serchLable(url);
+	if (res.second != -1) {
+		clientManager->sendToClient(res.first, res.second);
+		if (!clientManager->recvFromClient(buffer, packLen))
+			return false;
+	}
 	generateQString();
 	isReady = true;
 	return true;
 }
 
+bool Task::preCheckHttps()
+{
+	generateQString();
+	isReady = true;
+
+	/* 若为https协议，回复客户端已经建立和服务器之间的tcp连接，并接收客户端的真正https请求报文 */
+	std::string res = "HTTP/" + httpVersion + " 200 Connection established\r\n\r\n";
+	clientManager->sendToClient(const_cast<char*>(res.c_str()), (int)res.size());
+	if (!clientManager->recvFromClient(buffer, packLen))
+		return false;
+	return true;
+}
 
 /*  检查客户端IP是否合法*/
 bool Task::isClientLegal()
@@ -86,9 +94,12 @@ inline bool Task::isDomainLegal()
 /* 检查传输文件类型是否合法 */
 bool Task::isTypeLegal()
 {
+	std::string package = std::string(buffer);
+	std::string firstLine = package.substr(0, package.find("\r\n"));
 	int dotLoc = -1, leanLine = -1;
 	std::string type = firstLine.substr(firstLine.find(" ") + 1);	/* 提取出url部分存在type中 */
 	type = type.substr(0, type.rfind(" HTTP"));
+	url = domain + type;
 	dotLoc = type.rfind(".");		/* 判断该报文是否指定接受的文件后缀 */
 	if (dotLoc == -1)
 		return true;
@@ -122,14 +133,25 @@ void Task::transferLoop()
 		if (FD_ISSET(serverSocket, &read_set)) {
 			if (!serverManager->recvFromServer(buffer, packLen))
 				break;
+			if (protocol == "HTTP")
+				cacheManager->addLable(url, buffer, packLen);
+			down_bytes += packLen;
 			clientManager->sendToClient(buffer, packLen);
 		}
 		// 客户端--->服务器有信息要转发
 		if (FD_ISSET(clientSocket, &read_set)) {
 			if (!clientManager->recvFromClient(buffer, packLen))
 				break;
-			if (protocol == "HTTP" && !isTypeLegal())
-				break;
+			if (protocol == "HTTP") {
+				if (!isTypeLegal())
+					continue;
+				std::pair<char*, int> res = cacheManager->serchLable(url);
+				if (res.second != -1) {
+					clientManager->sendToClient(res.first, res.second);
+					continue;
+				}
+			}
+			up_bytes += packLen;
 			serverManager->sendToServer(buffer, packLen);
 		}
 	}
@@ -192,7 +214,6 @@ void Task::parseHttpHead(std::string whole)
 	int size = whole.size();			/* 记录整个请求报文长度 */
 	bool end = false;
 	int port = 80;						/* http协议服务器端口默认为80 */
-	firstLine = whole.substr(0, pos);
 
 	while (!end && pos < size - 2)
 	{
@@ -260,6 +281,5 @@ char* Task::getIpv6(ADDRINFOA& hints, char* ipBuf)
 	addr6 = (PSOCKADDR_IN6)res->ai_addr;
 	inet_ntop(AF_INET6, &addr6->sin6_addr, ipBuf, ADDRLEN_IPV6);
 	this->isIpv4 = false;
-	printf("\033[1;34m It's really ipv6!!!\033[0m\n");		//hack Debug info
 	return ipBuf;
 }

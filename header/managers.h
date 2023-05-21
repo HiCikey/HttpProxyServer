@@ -9,14 +9,19 @@
 
 namespace managers {
 	/*
-	* 缓存标签，可通过该结构体唯一标识一个缓存文件
+	* 代理缓存管理类
 	*/
-	typedef struct CacheLabel {
-		char* data;			/* 缓存文件内容指针 */
-		u_int TTL;			/* 文件缓存的剩余时间（秒） */
-		u_int visit_times;	/* 文件访问次数 */
-		u_int size;			/* 文件大小（字节） */
-	}*CacheLabelPtr;
+	class CacheManager {
+	public:
+		CacheManager();
+		~CacheManager();
+		void addLable(std::string url, char* package, int packLen);
+		std::pair<char*, int> serchLable(std::string url);
+	private:
+		std::set<CacheLabelPtr> cache;
+		std::mutex mtx_cache;
+	};
+
 
 	/*
 	* 客户端通信管理类
@@ -88,14 +93,17 @@ namespace managers {
 
 		/* 黑名单相关数据结构 */
 		std::set<std::string> black_domain;	/* 访问域名黑名单 */
-		std::set<std::string> black_ip;		/* 客户端ipv4地址黑名单 */
+		std::set<std::string> black_ip;		/* 客户端ip地址黑名单 */
 		std::set<std::string> black_type;	/* 传输文件类型黑名单 */
+		std::set<std::string> white_ip;		/* 客户端ip地址白名单 */
 		std::mutex mtx_domain;
 		std::mutex mtx_ip;
 		std::mutex mtx_type;
+		std::mutex mtx_ip_white;
 
 		void setDomainList();
-		void setIpList();
+		void setBlackIpList();
+		void setWhiteIpList();
 		void setTypeList();
 	};
 }

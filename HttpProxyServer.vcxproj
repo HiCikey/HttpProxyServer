@@ -94,6 +94,7 @@
   <ItemGroup>
     <ClCompile Include="src\MyListWidget.cpp" />
     <ClCompile Include="src\MainWidget.cpp" />
+    <ClCompile Include="src\proManager\CacheManager.cpp" />
     <ClCompile Include="src\proManager\ClientManager.cpp" />
     <ClCompile Include="src\proManager\RuleManager.cpp" />
     <ClCompile Include="src\proManager\ServerManager.cpp" />

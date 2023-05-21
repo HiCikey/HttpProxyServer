@@ -158,7 +158,7 @@ bool RuleManager::setBlackList()
 		return false;
 	}
 	setDomainList();
-	setIpList();
+	setBlackIpList();
 	setTypeList();
 	return true;
 }
@@ -181,7 +181,7 @@ void RuleManager::setDomainList()
 	mysql_free_result(res);
 }
 
-void RuleManager::setIpList()
+void RuleManager::setBlackIpList()
 {
 	MYSQL_RES* res = nullptr;
 	MYSQL_ROW row = nullptr;
@@ -190,6 +190,24 @@ void RuleManager::setIpList()
 
 	// 查询数据库中的IP黑名单
 	mysql_query(&mysql, "select * from black_ip;");
+	res = mysql_store_result(&mysql);
+	while (row = mysql_fetch_row(res)) {
+		lck.lock();
+		black_ip.emplace(std::string(row[0]));
+		lck.unlock();
+	}
+	mysql_free_result(res);
+}
+
+void managers::RuleManager::setWhiteIpList()
+{
+	MYSQL_RES* res = nullptr;
+	MYSQL_ROW row = nullptr;
+	std::unique_lock<std::mutex> lck(mtx_ip_white);
+	lck.unlock();
+
+	// 查询数据库中的IP黑名单
+	mysql_query(&mysql, "select * from white_ip;");
 	res = mysql_store_result(&mysql);
 	while (row = mysql_fetch_row(res)) {
 		lck.lock();

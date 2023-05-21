@@ -117,6 +117,8 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action_ip_white"/>
+   <addaction name="separator"/>
    <addaction name="action_ip"/>
    <addaction name="separator"/>
    <addaction name="action_domain"/>
@@ -125,18 +127,18 @@
   </widget>
   <action name="action_ip">
    <property name="text">
-    <string>ip规则(A)</string>
+    <string>IP黑名单(B)</string>
    </property>
    <property name="toolTip">
     <string>客户端IP黑名单</string>
    </property>
    <property name="shortcut">
-    <string>A</string>
+    <string>B</string>
    </property>
   </action>
   <action name="action_domain">
    <property name="text">
-    <string>域名规则(D)</string>
+    <string>域名黑名单(D)</string>
    </property>
    <property name="toolTip">
     <string>访问的域名黑名单</string>
@@ -147,13 +149,24 @@
   </action>
   <action name="action_type">
    <property name="text">
-    <string>类型规则(T)</string>
+    <string>类型黑名单(T)</string>
    </property>
    <property name="toolTip">
     <string>传输文件类型黑名单</string>
    </property>
    <property name="shortcut">
     <string>T</string>
+   </property>
+  </action>
+  <action name="action_ip_white">
+   <property name="text">
+    <string>IP白名单(W)</string>
+   </property>
+   <property name="toolTip">
+    <string>客户端IP白名单</string>
+   </property>
+   <property name="shortcut">
+    <string>W</string>
    </property>
   </action>
  </widget>

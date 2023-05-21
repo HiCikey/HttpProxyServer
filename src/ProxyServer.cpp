@@ -6,6 +6,7 @@ ProxyServer::ProxyServer()
 	sockAddrListen = { 0 };
 	pool = nullptr;
 	ruleManager = new RuleManager();
+	cacheManager = new CacheManager();
 }
 
 ProxyServer::~ProxyServer()
@@ -31,8 +32,7 @@ void ProxyServer::proxyStartUp()
 			continue;
 
 		// 新建一个任务并交给线程池处理
-		Task::count++;
-		Task* task = new Task(ruleManager, sockConn, addr);
+		Task* task = new Task(ruleManager, cacheManager, sockConn, addr);
 		if (task != NULL) {
 			pool->addTask(task);
 			lck.lock();

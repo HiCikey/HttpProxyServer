@@ -78,7 +78,6 @@ void ThreadPool<T>::run()
 			task->startup();
 			task->isEnd = true;
 			printf("\n\n");
-			Task::count--;
 		}
 	}
 }

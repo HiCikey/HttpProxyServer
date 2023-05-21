@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <mutex>
+#include <time.h>
 
 #define BUFFER_SIZE 1024*1024	/* 报文缓冲区大小 */
 #define ADDRLEN_IPV4 16			/* ipv4地址缓冲区大小 */
@@ -22,6 +23,17 @@ typedef struct ServerInfo {
 	unsigned short port = 0;	/* 端口号 */
 	std::string domain;			/* 域名 */
 }*ServerInfoPtr;
+
+
+// 缓存标签，可通过该结构体唯一标识一个缓存文件
+typedef struct CacheLabel {
+	char* data;				/* 缓存文件内容指针 */
+	time_t last;			/* 该缓存上次被访问的时间戳 */
+	unsigned int size;		/* 文件大小（字节） */
+	std::string url;
+	double weight;
+}*CacheLabelPtr;
+
 
 enum model {
 	MODEL_IP,

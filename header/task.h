@@ -7,11 +7,9 @@ using namespace managers;
 
 class Task {
 public:
-	Task(RuleManager* rule,SOCKET sockConn, SOCKADDR_IN addr);
+	Task(RuleManager* rule, CacheManager* cache, SOCKET sockConn, SOCKADDR_IN addr);
 	~Task();
 	void startup();
-	static int count;				//hack 调式完成后删除该变量及其所有引用
-
 	bool isReady;					/* 两端信息是否已准备充分 */
 	bool isEnd;						/* 任务是否已结束 */
 	std::string source;				/* 客户端主机信息 */
@@ -21,7 +19,8 @@ public:
 	unsigned long long down_bytes;	/* 从服务器下载的应用层数据字节数 */
 
 private:
-	bool checkFirst();
+	bool preCheckHttp();
+	bool preCheckHttps();
 	void generateQString();
 	void transferLoop();
 	void getProtAndParseHead();
@@ -38,10 +37,11 @@ private:
 	ClientManager* clientManager;		/* 客户端管理器，负责与客户端的通信 */
 	ServerManager* serverManager;		/* 服务器端管理器，负责与服务器端通信 */
 	RuleManager* ruleManager;
+	CacheManager* cacheManager;
 	char* buffer;						/* 报文缓冲区 */
 	int packLen;						/* 最近一次接收或发送的字节数 */
 	std::string protocol;				/* 客户端使用的协议类型 */
 	std::string httpVersion;			/* 客户端浏览器使用的http协议版本 */
-	std::string firstLine;				/* HTTP报文的第一行，用于提取客户端需要的文件 */
-	bool isIpv4;						// hack 删除否？
+	std::string url;
+	bool isIpv4;
 };
